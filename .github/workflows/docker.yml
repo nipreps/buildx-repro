@@ -38,13 +38,19 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Docker image
-        id: build-and-push
+      - name: Build Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           cache-to: inline
+
+      - name: Push Docker image
+        uses: docker/build-push-action@v4
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
